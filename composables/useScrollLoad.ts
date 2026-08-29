@@ -1,3 +1,5 @@
+import { nextTick } from 'vue'
+
 const LOAD_DISTANCE = 80
 
 export function isNearScrollTop(element: HTMLElement, distance = LOAD_DISTANCE) {

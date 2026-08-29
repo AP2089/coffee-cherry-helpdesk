@@ -9,43 +9,15 @@ import type {
 } from '~/types/chat'
 import { useApiBase, useSocketUrl } from '~/composables/useApiBase'
 import { useAuthStore } from '~/stores/auth'
+import {
+  normalizeConversationPage,
+  normalizeMessagesPage,
+  prependOlderMessages,
+} from '~/utils/chat-page'
 
 const PAGE_SIZE = 20
 
 let socket: Socket | null = null
-
-function normalizeConversationPage(data: unknown): {
-  items: ConversationListItem[]
-  hasMore: boolean
-} {
-  if (Array.isArray(data)) {
-    return { items: data, hasMore: false }
-  }
-
-  const page = data as PaginatedList<ConversationListItem>
-  return {
-    items: page?.items ?? [],
-    hasMore: Boolean(page?.hasMore),
-  }
-}
-
-function normalizeMessagesPage(data: unknown): {
-  meta: ConversationMeta | null
-  messages: ChatMessage[]
-  hasMore: boolean
-} {
-  const payload = data as {
-    meta?: ConversationMeta
-    messages?: ChatMessage[]
-    hasMore?: boolean
-  }
-
-  return {
-    meta: payload?.meta ?? null,
-    messages: payload?.messages ?? [],
-    hasMore: Boolean(payload?.hasMore),
-  }
-}
 
 export const useInboxStore = defineStore('inbox', {
   state: () => ({
@@ -230,7 +202,7 @@ export const useInboxStore = defineStore('inbox', {
           return
         }
 
-        this.messages = [...older, ...this.messages]
+        this.messages = prependOlderMessages(this.messages, older)
         this.messagesHasMore = page.hasMore
       } catch (error) {
         this.error = error instanceof Error ? error.message : 'Failed to load messages'
