@@ -1,7 +1,7 @@
 <template>
-  <aside class="flex h-full min-h-0 flex-col overflow-hidden border-b border-bone/10 md:border-b-0">
-    <div class="shrink-0 border-b border-bone/10 px-4 py-3">
-      <p class="text-xs uppercase tracking-[0.12em] text-bone/45">Диалоги</p>
+  <aside class="flex h-full min-h-0 flex-col overflow-hidden border-b border-border md:border-b-0">
+    <div class="shrink-0 border-b border-border px-4 py-3">
+      <p class="text-xs uppercase tracking-[0.12em] text-muted-foreground">Диалоги</p>
     </div>
 
     <div
@@ -9,14 +9,14 @@
       class="inbox-list min-h-0 flex-1 overflow-y-auto"
       @scroll="listScroll.onScroll"
     >
-      <p v-if="loading" class="px-4 py-6 text-sm text-bone/45">Загрузка…</p>
+      <p v-if="loading" class="px-4 py-6 text-sm text-muted-foreground">Загрузка…</p>
 
       <template v-if="!loading">
         <button
           v-for="conversation in conversations"
           :key="conversation.sessionId"
           type="button"
-          class="inbox-list__item w-full border-b border-bone/10 px-4 py-3 text-left transition-colors"
+          class="inbox-list__item w-full border-b border-border px-4 py-3 text-left transition-colors duration-300 ease-premium"
           :class="{ 'is-active': conversation.sessionId === activeSessionId }"
           @click="$emit('select', conversation.sessionId)"
         >
@@ -24,41 +24,38 @@
             <p class="truncate text-sm font-medium">
               {{ conversation.guestName || 'Гость' }}
             </p>
-            <span
-              v-if="unreadBySession[conversation.sessionId]"
-              class="inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-bronze px-1 text-[10px] font-semibold text-ink"
-            >
+            <Badge v-if="unreadBySession[conversation.sessionId]" variant="unread">
               {{ unreadBySession[conversation.sessionId] }}
-            </span>
+            </Badge>
           </div>
 
-          <p class="mt-0.5 truncate text-xs text-bone/45">
+          <p class="mt-0.5 truncate text-xs text-muted-foreground">
             {{ conversation.guestEmail || conversation.sessionId.slice(0, 8) }}
           </p>
 
-          <p v-if="conversation.lastMessage" class="mt-2 line-clamp-2 text-xs text-bone/55">
+          <p v-if="conversation.lastMessage" class="mt-2 line-clamp-2 text-xs text-foreground/55">
             {{ conversation.lastMessage.text }}
           </p>
 
-          <p class="mt-2 text-[10px] uppercase tracking-[0.08em] text-bone/30">
+          <p class="mt-2 text-[10px] uppercase tracking-[0.08em] text-muted-foreground/70">
             {{ formatTime(conversation.updatedAt) }}
           </p>
         </button>
 
-        <p v-if="!conversations.length" class="px-4 py-6 text-sm text-bone/45">
+        <p v-if="!conversations.length" class="px-4 py-6 text-sm text-muted-foreground">
           Пока нет обращений
         </p>
 
         <p
           v-if="conversations.length && loadingMore"
-          class="px-4 py-3 text-center text-xs text-bone/40"
+          class="px-4 py-3 text-center text-xs text-muted-foreground"
         >
           Загрузка…
         </p>
 
         <p
           v-else-if="conversations.length && !hasMore"
-          class="px-4 py-3 text-center text-[10px] uppercase tracking-[0.08em] text-bone/25"
+          class="px-4 py-3 text-center text-[10px] uppercase tracking-[0.08em] text-muted-foreground/50"
         >
           Все диалоги загружены
         </p>
@@ -126,21 +123,19 @@ function formatTime(value: string) {
 </script>
 
 <style scoped lang="scss">
-@use '../../assets/scss/variables' as *;
-
 .inbox-list {
   scrollbar-width: thin;
-  scrollbar-color: rgba($bone, 0.18) transparent;
+  scrollbar-color: color-mix(in srgb, var(--foreground) 18%, transparent) transparent;
 }
 
 .inbox-list__item {
   &:hover,
   &.is-active {
-    background: rgba($bone, 0.04);
+    background: var(--accent);
   }
 
   &.is-active {
-    border-left: 2px solid rgba($bronze, 0.8);
+    border-left: 2px solid color-mix(in srgb, var(--primary) 80%, transparent);
     padding-left: calc(1rem - 2px);
   }
 }

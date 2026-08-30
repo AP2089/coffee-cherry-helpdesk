@@ -1,34 +1,31 @@
 <template>
   <div class="flex h-full min-h-0 flex-col">
     <header
-      class="flex shrink-0 items-center justify-between border-b border-bone/10 px-4 py-3 md:px-6"
+      class="flex shrink-0 items-center justify-between border-b border-border px-4 py-3 md:px-6"
     >
       <div>
-        <UiLogo />
-        <p class="mt-1 text-xs text-bone/45">
+        <BrandLogo />
+        <p class="mt-1 text-xs text-muted-foreground">
           Helpdesk · {{ auth.user?.username }} · {{ auth.user?.role }}
         </p>
       </div>
 
       <div class="flex items-center gap-4">
-        <span
-          class="inline-flex items-center gap-2 text-xs text-bone/45"
-          :title="inbox.isConnected ? 'Онлайн' : 'Оффлайн'"
-        >
+        <Badge variant="status" :title="inbox.isConnected ? 'Онлайн' : 'Оффлайн'">
           <span
             class="h-2 w-2 rounded-full"
-            :class="inbox.isConnected ? 'bg-emerald-400/90' : 'bg-ember/80'"
+            :class="inbox.isConnected ? 'bg-success' : 'bg-destructive/80'"
           />
           {{ inbox.isConnected ? 'Подключено' : 'Нет связи' }}
-        </span>
+        </Badge>
 
-        <button type="button" class="magnetic-btn px-4 py-2 text-xs" @click="logout">Выйти</button>
+        <Button type="button" variant="magnetic" size="sm" @click="logout">Выйти</Button>
       </div>
     </header>
 
     <div class="flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
       <InboxConversationList
-        class="min-h-0 flex-1 md:h-full md:w-80 md:shrink-0 md:flex-none md:border-r md:border-bone/10"
+        class="min-h-0 flex-1 md:h-full md:w-80 md:shrink-0 md:flex-none md:border-r md:border-border"
         :conversations="inbox.conversations"
         :active-session-id="inbox.activeSessionId"
         :loading="inbox.loadingConversations"

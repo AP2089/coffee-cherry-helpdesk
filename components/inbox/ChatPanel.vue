@@ -1,135 +1,123 @@
 <template>
   <section class="relative flex h-full min-h-0 flex-col overflow-hidden">
-    <template v-if="meta">
-      <div class="shrink-0 border-b border-bone/10 px-4 py-3 md:px-6">
-        <div class="flex items-start justify-between gap-3">
-          <div class="min-w-0">
-            <p class="text-sm font-medium">{{ meta.guestName || 'Гость' }}</p>
-            <p class="text-xs text-bone/45">{{ meta.guestEmail }}</p>
+    <AlertDialog v-model:open="showDeleteConfirm">
+      <template v-if="meta">
+        <div class="shrink-0 border-b border-border px-4 py-3 md:px-6">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <p class="text-sm font-medium">{{ meta.guestName || 'Гость' }}</p>
+              <p class="text-xs text-muted-foreground">{{ meta.guestEmail }}</p>
+            </div>
+
+            <AlertDialogTrigger v-if="canDelete" as-child>
+              <Button
+                type="button"
+                variant="destructive-outline"
+                size="sm"
+                class="shrink-0 px-3 py-1.5"
+                :disabled="deleting"
+              >
+                {{ deleting ? 'Удаление…' : 'Удалить' }}
+              </Button>
+            </AlertDialogTrigger>
           </div>
-
-          <button
-            v-if="canDelete"
-            type="button"
-            class="magnetic-btn shrink-0 px-3 py-1.5 text-xs text-ember/90 hover:text-ember disabled:cursor-not-allowed disabled:opacity-45"
-            :disabled="deleting"
-            @click="openDeleteConfirm"
-          >
-            {{ deleting ? 'Удаление…' : 'Удалить' }}
-          </button>
         </div>
-      </div>
 
-      <div
-        ref="messagesEl"
-        class="inbox-messages min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-4 md:px-6"
-        @scroll="messagesScroll.onScroll"
-      >
-        <p v-if="loadingMore" class="text-center text-xs text-bone/40">Загрузка…</p>
-
-        <p v-if="loading" class="text-sm text-bone/45">Загрузка сообщений…</p>
-
-        <article
-          v-for="message in messages"
-          :key="message.id"
-          class="flex"
-          :class="message.sender === 'agent' ? 'justify-end' : 'justify-start'"
-        >
-          <div
-            class="max-w-[85%] border px-3 py-2 text-sm leading-relaxed"
-            :class="
-              message.sender === 'agent'
-                ? 'border-bronze/25 bg-bronze/20 text-bone'
-                : 'border-bone/10 bg-bone/5 text-bone/80'
-            "
-          >
-            <p class="whitespace-pre-wrap break-words">{{ message.text }}</p>
-            <p class="mt-1 text-[10px] uppercase tracking-[0.08em] text-bone/35">
-              {{ formatTime(message.createdAt) }}
-            </p>
-          </div>
-        </article>
-      </div>
-
-      <form class="shrink-0 border-t border-bone/10 p-3 md:px-6" @submit.prevent="submit">
-        <div class="flex items-stretch gap-2">
-          <textarea
-            v-model="draft"
-            rows="2"
-            class="inbox-textarea min-h-[44px] max-h-28 flex-1 resize-none px-3 py-2 text-sm outline-none"
-            placeholder="Ответ клиенту…"
-            :disabled="!canSend"
-            @keydown.enter.exact.prevent="submit"
-          />
-          <button
-            type="submit"
-            class="inbox-send magnetic-btn magnetic-btn--filled shrink-0 flex w-11 items-center justify-center"
-            :disabled="!canSend || !draft.trim()"
-            aria-label="Отправить"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              class="h-4 w-4"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-            >
-              <path stroke-linecap="round" stroke-linejoin="round" d="M5 12l14-7-7 14-2-5-5-2z" />
-            </svg>
-          </button>
-        </div>
-      </form>
-    </template>
-
-    <div v-else class="flex min-h-0 flex-1 items-center justify-center px-4 md:px-6">
-      <p class="text-sm text-bone/45">Выберите диалог слева</p>
-    </div>
-
-    <Transition name="inbox-confirm">
-      <div
-        v-if="showDeleteConfirm"
-        class="inbox-confirm absolute inset-0 z-10 flex items-center justify-center bg-ink/75 px-4 backdrop-blur-sm"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="inbox-delete-title"
-        @click.self="cancelDelete"
-      >
         <div
-          class="inbox-confirm__panel w-full max-w-sm border border-bone/15 bg-ink p-5 shadow-[0_24px_80px_rgba(0,0,0,0.45)]"
+          ref="messagesEl"
+          class="inbox-messages min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-4 md:px-6"
+          @scroll="messagesScroll.onScroll"
         >
-          <p id="inbox-delete-title" class="text-sm leading-relaxed text-bone/85">
-            Удалить диалог и все сообщения?
-          </p>
-          <p v-if="meta" class="mt-2 text-xs text-bone/45">
-            {{ meta.guestName || 'Гость' }} · {{ meta.guestEmail || meta.sessionId.slice(0, 8) }}
-          </p>
+          <p v-if="loadingMore" class="text-center text-xs text-muted-foreground">Загрузка…</p>
 
-          <div class="mt-5 flex justify-end gap-2">
-            <button
-              type="button"
-              class="magnetic-btn px-4 py-2 text-xs"
-              :disabled="deleting"
-              @click="cancelDelete"
+          <p v-if="loading" class="text-sm text-muted-foreground">Загрузка сообщений…</p>
+
+          <article
+            v-for="message in messages"
+            :key="message.id"
+            class="flex"
+            :class="message.sender === 'agent' ? 'justify-end' : 'justify-start'"
+          >
+            <div
+              class="max-w-[85%] border px-3 py-2 text-sm leading-relaxed"
+              :class="
+                message.sender === 'agent'
+                  ? 'border-primary/25 bg-primary/20 text-foreground'
+                  : 'border-border bg-muted text-foreground/80'
+              "
             >
-              Отмена
-            </button>
-            <button
-              type="button"
-              class="magnetic-btn px-4 py-2 text-xs text-ember/90 hover:text-ember"
-              :disabled="deleting"
-              @click="confirmDelete"
-            >
-              {{ deleting ? 'Удаление…' : 'Удалить' }}
-            </button>
-          </div>
+              <p
+                class="mb-1 text-[10px] font-medium tracking-[0.08em] uppercase"
+                :class="message.sender === 'agent' ? 'text-primary/70' : 'text-muted-foreground'"
+              >
+                {{ senderLabel(message.sender) }}
+              </p>
+              <p class="whitespace-pre-wrap break-words">{{ message.text }}</p>
+              <p class="mt-1 text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
+                {{ formatTime(message.createdAt) }}
+              </p>
+            </div>
+          </article>
         </div>
+
+        <form class="shrink-0 border-t border-border p-3 md:px-6" @submit.prevent="submit">
+          <div class="flex items-stretch gap-2">
+            <Textarea
+              v-model="draft"
+              rows="2"
+              class="min-h-[44px] max-h-28 flex-1"
+              placeholder="Ответ клиенту…"
+              :disabled="!canSend"
+              @keydown.enter.exact.prevent="submit"
+            />
+            <Button
+              type="submit"
+              variant="magnetic-filled"
+              size="icon"
+              class="shrink-0"
+              :disabled="!canSend || !draft.trim()"
+              aria-label="Отправить"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                class="h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 12l14-7-7 14-2-5-5-2z" />
+              </svg>
+            </Button>
+          </div>
+        </form>
+
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle class="text-sm font-normal leading-relaxed text-foreground/85">
+              Удалить диалог и все сообщения?
+            </AlertDialogTitle>
+            <AlertDialogDescription class="text-xs text-muted-foreground">
+              {{ meta.guestName || 'Гость' }} · {{ meta.guestEmail || meta.sessionId.slice(0, 8) }}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel :disabled="deleting">Отмена</AlertDialogCancel>
+            <AlertDialogAction :disabled="deleting" @click="confirmDelete">
+              {{ deleting ? 'Удаление…' : 'Удалить' }}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </template>
+
+      <div v-else class="flex min-h-0 flex-1 items-center justify-center px-4 md:px-6">
+        <p class="text-sm text-muted-foreground">Выберите диалог слева</p>
       </div>
-    </Transition>
+    </AlertDialog>
   </section>
 </template>
 
 <script setup lang="ts">
-import type { ChatMessage, ConversationMeta } from '~/types/chat'
+import type { ChatMessage, ChatSender, ConversationMeta } from '~/types/chat'
 
 const props = defineProps<{
   meta: ConversationMeta | null
@@ -152,17 +140,7 @@ const draft = ref('')
 const messagesEl = ref<HTMLElement | null>(null)
 const showDeleteConfirm = ref(false)
 
-function openDeleteConfirm() {
-  if (props.deleting) return
-  showDeleteConfirm.value = true
-}
-
-function cancelDelete() {
-  showDeleteConfirm.value = false
-}
-
 function confirmDelete() {
-  showDeleteConfirm.value = false
   emit('delete')
 }
 
@@ -171,6 +149,14 @@ function formatTime(value: string) {
     hour: '2-digit',
     minute: '2-digit',
   }).format(new Date(value))
+}
+
+function senderLabel(sender: ChatSender) {
+  if (sender === 'agent') {
+    return 'Саппорт'
+  }
+
+  return props.meta?.guestName || 'Пользователь'
 }
 
 function scrollToBottom() {
@@ -236,58 +222,8 @@ watch(
 </script>
 
 <style scoped lang="scss">
-@use '../../assets/scss/variables' as *;
-
 .inbox-messages {
   scrollbar-width: thin;
-  scrollbar-color: rgba($bone, 0.18) transparent;
-}
-
-.inbox-textarea {
-  border: 1px solid rgba($bone, 0.12);
-  background: transparent;
-  color: $bone;
-
-  &:focus {
-    border-color: rgba($bronze, 0.45);
-  }
-
-  &::placeholder {
-    color: rgba($bone, 0.35);
-  }
-}
-
-.inbox-send {
-  padding: 0;
-}
-
-.inbox-confirm-enter-active {
-  transition: opacity 0.3s $ease-premium;
-
-  .inbox-confirm__panel {
-    transition:
-      opacity 0.3s $ease-premium,
-      transform 0.3s $ease-premium;
-  }
-}
-
-.inbox-confirm-leave-active {
-  transition: opacity 0.2s $ease-premium;
-
-  .inbox-confirm__panel {
-    transition:
-      opacity 0.2s $ease-premium,
-      transform 0.2s $ease-premium;
-  }
-}
-
-.inbox-confirm-enter-from,
-.inbox-confirm-leave-to {
-  opacity: 0;
-
-  .inbox-confirm__panel {
-    opacity: 0;
-    transform: translateY(0.75rem) scale(0.95);
-  }
+  scrollbar-color: color-mix(in srgb, var(--foreground) 18%, transparent) transparent;
 }
 </style>

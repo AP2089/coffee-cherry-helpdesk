@@ -1,3 +1,5 @@
+import tailwindcss from '@tailwindcss/vite'
+
 export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
   future: {
@@ -6,7 +8,16 @@ export default defineNuxtConfig({
   srcDir: '.',
   devtools: { enabled: false },
 
-  modules: ['@nuxt/eslint', '@nuxtjs/tailwindcss', '@pinia/nuxt', '@vueuse/nuxt'],
+  modules: ['@nuxt/eslint', 'shadcn-nuxt', '@pinia/nuxt', '@vueuse/nuxt'],
+
+  shadcn: {
+    prefix: '',
+    componentDir: '@/components/ui',
+  },
+
+  vite: {
+    plugins: [tailwindcss()],
+  },
 
   eslint: {
     config: {
@@ -14,7 +25,7 @@ export default defineNuxtConfig({
     },
   },
 
-  css: ['~/assets/scss/main.scss'],
+  css: ['~/assets/css/tailwind.css', '~/assets/scss/main.scss'],
 
   runtimeConfig: {
     apiUrl: process.env.NUXT_API_URL || 'http://127.0.0.1:3001/api',
@@ -33,6 +44,9 @@ export default defineNuxtConfig({
         { name: 'theme-color', content: '#0E0C0A' },
       ],
       link: [
+        { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
+        { rel: 'apple-touch-icon', sizes: '180x180', href: '/apple-touch-icon.svg' },
+        { rel: 'manifest', href: '/site.webmanifest' },
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
         {

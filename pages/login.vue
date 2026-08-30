@@ -1,55 +1,86 @@
 <template>
   <div class="flex min-h-dvh items-center justify-center px-4">
-    <form class="w-full max-w-sm border border-bone/15 bg-ink-soft p-6" @submit.prevent="submit">
-      <UiLogo size="lg" />
-      <p class="mt-1 text-sm text-bone/50">Helpdesk</p>
+    <Card class="w-full max-w-sm border-border bg-card">
+      <CardContent class="p-6">
+        <form @submit="onSubmit">
+          <BrandLogo size="lg" />
+          <p class="mt-1 text-sm text-muted-foreground">Helpdesk</p>
 
-      <label class="mt-6 block text-xs uppercase tracking-[0.12em] text-bone/45">
-        Логин
-        <input
-          v-model="username"
-          type="text"
-          autocomplete="username"
-          class="helpdesk-input mt-2 w-full"
-          required
-        />
-      </label>
+          <div class="mt-6 space-y-4">
+            <div class="space-y-2">
+              <Label class="text-xs uppercase tracking-[0.12em] text-muted-foreground">
+                Логин
+              </Label>
+              <Input
+                v-model="username"
+                v-bind="usernameAttrs"
+                type="text"
+                autocomplete="username"
+              />
+              <p v-if="errors.username" class="text-xs text-destructive">{{ errors.username }}</p>
+            </div>
 
-      <label class="mt-4 block text-xs uppercase tracking-[0.12em] text-bone/45">
-        Пароль
-        <input
-          v-model="password"
-          type="password"
-          autocomplete="current-password"
-          class="helpdesk-input mt-2 w-full"
-          required
-        />
-      </label>
+            <div class="space-y-2">
+              <Label class="text-xs uppercase tracking-[0.12em] text-muted-foreground">
+                Пароль
+              </Label>
+              <Input
+                v-model="password"
+                v-bind="passwordAttrs"
+                type="password"
+                autocomplete="current-password"
+              />
+              <p v-if="errors.password" class="text-xs text-destructive">{{ errors.password }}</p>
+            </div>
+          </div>
 
-      <p v-if="auth.error" class="mt-4 text-sm text-ember">
-        {{ errorMessage }}
-      </p>
+          <Alert v-if="auth.error" variant="destructive" class="mt-4">
+            <AlertDescription>{{ errorMessage }}</AlertDescription>
+          </Alert>
 
-      <button
-        type="submit"
-        class="magnetic-btn magnetic-btn--filled mt-6 w-full px-4 py-3 text-xs"
-        :disabled="auth.loading"
-      >
-        {{ auth.loading ? 'Вход…' : 'Войти' }}
-      </button>
-    </form>
+          <Button
+            type="submit"
+            variant="magnetic-filled"
+            class="mt-6 w-full px-4 py-3"
+            :disabled="auth.loading"
+          >
+            {{ auth.loading ? 'Вход…' : 'Войти' }}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   </div>
 </template>
 
 <script setup lang="ts">
+import { useForm } from 'vee-validate'
+import { toTypedSchema } from '@vee-validate/zod'
+import { z } from 'zod'
+
 definePageMeta({
   layout: false,
   ssr: false,
 })
 
 const auth = useAuthStore()
-const username = ref('')
-const password = ref('')
+
+const validationSchema = toTypedSchema(
+  z.object({
+    username: z.string().trim().min(1, 'Введите логин'),
+    password: z.string().min(1, 'Введите пароль'),
+  }),
+)
+
+const { handleSubmit, defineField, errors } = useForm({
+  validationSchema,
+  initialValues: {
+    username: '',
+    password: '',
+  },
+})
+
+const [username, usernameAttrs] = defineField('username')
+const [password, passwordAttrs] = defineField('password')
 
 const errorMessage = computed(() => {
   if (auth.error === 'Invalid credentials' || auth.error === 'Unauthorized') {
@@ -63,28 +94,12 @@ const errorMessage = computed(() => {
   return auth.error || 'Не удалось войти'
 })
 
-async function submit() {
+const onSubmit = handleSubmit(async (values) => {
   try {
-    await auth.login(username.value, password.value)
+    await auth.login(values.username, values.password)
     await navigateTo('/')
   } catch {
     // error in store
   }
-}
+})
 </script>
-
-<style scoped lang="scss">
-@use '../assets/scss/variables' as *;
-
-.helpdesk-input {
-  border: 1px solid rgba($bone, 0.12);
-  background: transparent;
-  color: $bone;
-  padding: 0.625rem 0.75rem;
-  outline: none;
-
-  &:focus {
-    border-color: rgba($bronze, 0.45);
-  }
-}
-</style>
