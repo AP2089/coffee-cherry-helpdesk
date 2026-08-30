@@ -73,8 +73,7 @@
             <Button
               type="submit"
               variant="magnetic-filled"
-              size="icon"
-              class="shrink-0"
+              class="h-auto w-11 shrink-0 self-stretch p-0"
               :disabled="!canSend || !draft.trim()"
               aria-label="Отправить"
             >
