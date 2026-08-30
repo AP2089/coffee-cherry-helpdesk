@@ -11,7 +11,6 @@
 
 ```bash
 npm install
-cp .env.example .env
 npm run dev
 ```
 
@@ -19,11 +18,13 @@ npm run dev
 
 ## Переменные окружения
 
-| Переменная               | Описание            | По умолчанию                |
-| ------------------------ | ------------------- | --------------------------- |
-| `NUXT_PUBLIC_API_URL`    | REST API backend    | `http://127.0.0.1:3001/api` |
-| `NUXT_PUBLIC_SOCKET_URL` | Socket.IO backend   | `http://127.0.0.1:3001`     |
-| `NUXT_API_URL`           | Server-side API URL | `http://127.0.0.1:3001/api` |
+Файл `.env` в корне проекта.
+
+| Переменная               | Описание                                                             |
+| ------------------------ | -------------------------------------------------------------------- |
+| `NUXT_PUBLIC_API_URL`    | URL REST API backend (авторизация, список диалогов, сообщения)       |
+| `NUXT_PUBLIC_SOCKET_URL` | URL Socket.IO backend (новые сообщения и статусы в реальном времени) |
+| `NUXT_API_URL`           | URL API для SSR-запросов на сервере Nuxt                             |
 
 Backend должен разрешать origin helpdesk в `CORS_ORIGIN` (например `http://localhost:3002`).
 
