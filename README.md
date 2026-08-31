@@ -16,15 +16,24 @@ npm run dev
 
 Приложение: [http://localhost:3002](http://localhost:3002)
 
+## Docker
+
+Сначала запустите backend, затем:
+
+```bash
+docker compose up -d --build
+```
+
 ## Переменные окружения
 
 Файл `.env` в корне проекта.
 
-| Переменная               | Описание                                                             |
-| ------------------------ | -------------------------------------------------------------------- |
-| `NUXT_PUBLIC_API_URL`    | URL REST API backend (авторизация, список диалогов, сообщения)       |
-| `NUXT_PUBLIC_SOCKET_URL` | URL Socket.IO backend (новые сообщения и статусы в реальном времени) |
-| `NUXT_API_URL`           | URL API для SSR-запросов на сервере Nuxt                             |
+| Переменная   | Описание                                     |
+| ------------ | -------------------------------------------- |
+| `PORT`       | Порт приложения                              |
+| `NODE_ENV`   | Режим работы: `development` или `production` |
+| `API_URL`    | URL REST API backend для браузера и SSR      |
+| `SOCKET_URL` | URL Socket.IO backend                        |
 
 Backend должен разрешать origin helpdesk в `CORS_ORIGIN` (например `http://localhost:3002`).
 
