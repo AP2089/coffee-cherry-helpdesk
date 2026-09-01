@@ -29,10 +29,10 @@ export default defineNuxtConfig({
   css: ['~/assets/css/tailwind.css', '~/assets/scss/main.scss'],
 
   runtimeConfig: {
-    apiUrl: process.env.API_URL || '',
+    apiUrl: '',
     public: {
-      apiUrl: process.env.API_URL || '',
-      socketUrl: process.env.SOCKET_URL || '',
+      apiUrl: '',
+      socketUrl: '',
     },
   },
 
