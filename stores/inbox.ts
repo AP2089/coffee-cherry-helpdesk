@@ -1,13 +1,12 @@
 import { defineStore } from 'pinia'
 import type { Socket } from 'socket.io-client'
-import type { ApiResponse } from '~/types/api'
-import type {
-  ChatMessage,
-  ConversationListItem,
-  ConversationMeta,
-  PaginatedList,
-} from '~/types/chat'
-import { useApiBase, useSocketUrl } from '~/composables/useApiBase'
+import type { ChatMessage, ConversationListItem, ConversationMeta } from '~/types/chat'
+import {
+  apiDeleteConversation,
+  apiGetConversationMessages,
+  apiGetConversations,
+} from '~/api/conversations'
+import { useSocketUrl } from '~/composables/useApiBase'
 import { useAuthStore } from '~/stores/auth'
 import {
   normalizeConversationPage,
@@ -61,12 +60,10 @@ export const useInboxStore = defineStore('inbox', {
       this.error = null
 
       try {
-        const response = await $fetch<
-          ApiResponse<PaginatedList<ConversationListItem> | ConversationListItem[]>
-        >(`${useApiBase()}/conversations`, {
-          headers: this.authHeaders(),
-          query: { limit: PAGE_SIZE, offset: 0 },
-        })
+        const response = await apiGetConversations(
+          { limit: PAGE_SIZE, offset: 0 },
+          { headers: this.authHeaders() },
+        )
 
         if (!response.success || !response.data) {
           throw new Error(response.message || 'Failed to load conversations')
@@ -90,15 +87,10 @@ export const useInboxStore = defineStore('inbox', {
       this.error = null
 
       try {
-        const response = await $fetch<
-          ApiResponse<PaginatedList<ConversationListItem> | ConversationListItem[]>
-        >(`${useApiBase()}/conversations`, {
-          headers: this.authHeaders(),
-          query: {
-            limit: PAGE_SIZE,
-            offset: this.conversations.length,
-          },
-        })
+        const response = await apiGetConversations(
+          { limit: PAGE_SIZE, offset: this.conversations.length },
+          { headers: this.authHeaders() },
+        )
 
         if (!response.success || !response.data) {
           throw new Error(response.message || 'Failed to load conversations')
@@ -133,12 +125,11 @@ export const useInboxStore = defineStore('inbox', {
       this.messagesHasMore = false
 
       try {
-        const response = await $fetch<
-          ApiResponse<{ meta: ConversationMeta; messages: ChatMessage[]; hasMore?: boolean }>
-        >(`${useApiBase()}/conversations/${sessionId}/messages`, {
-          headers: this.authHeaders(),
-          query: { limit: PAGE_SIZE },
-        })
+        const response = await apiGetConversationMessages(
+          sessionId,
+          { limit: PAGE_SIZE },
+          { headers: this.authHeaders() },
+        )
 
         if (!response.success || !response.data) {
           throw new Error(response.message || 'Failed to load messages')
@@ -176,15 +167,14 @@ export const useInboxStore = defineStore('inbox', {
       const before = this.messages[0]?.id
 
       try {
-        const response = await $fetch<
-          ApiResponse<{ meta: ConversationMeta; messages: ChatMessage[]; hasMore?: boolean }>
-        >(`${useApiBase()}/conversations/${sessionId}/messages`, {
-          headers: this.authHeaders(),
-          query: {
+        const response = await apiGetConversationMessages(
+          sessionId,
+          {
             limit: PAGE_SIZE,
             before,
           },
-        })
+          { headers: this.authHeaders() },
+        )
 
         if (!response.success || !response.data) {
           throw new Error(response.message || 'Failed to load messages')
@@ -226,13 +216,9 @@ export const useInboxStore = defineStore('inbox', {
       this.error = null
 
       try {
-        const response = await $fetch<ApiResponse<{ sessionId: string }>>(
-          `${useApiBase()}/conversations/${sessionId}`,
-          {
-            method: 'DELETE',
-            headers: this.authHeaders(),
-          },
-        )
+        const response = await apiDeleteConversation(sessionId, {
+          headers: this.authHeaders(),
+        })
 
         if (!response.success) {
           throw new Error(response.message || 'Failed to delete conversation')
