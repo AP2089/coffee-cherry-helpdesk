@@ -60,21 +60,21 @@
           </article>
         </div>
 
-        <form class="shrink-0 border-t border-border p-3 md:px-6" @submit.prevent="submit">
+        <form class="shrink-0 border-t border-border p-3 md:px-6" @submit.prevent="onSendClick">
           <div class="flex items-stretch gap-2">
             <Textarea
               v-model="draft"
               rows="2"
               class="min-h-[44px] max-h-28 flex-1"
               placeholder="Ответ клиенту…"
-              :disabled="!canSend"
-              @keydown.enter.exact.prevent="submit"
+              :disabled="canEdit && !canSend"
+              @keydown.enter.exact.prevent="onSendClick"
             />
             <Button
               type="submit"
               variant="magnetic-filled"
               class="h-auto w-11 shrink-0 self-stretch p-0"
-              :disabled="!canSend || !draft.trim()"
+              :disabled="canEdit && (!canSend || !draft.trim())"
               aria-label="Отправить"
             >
               <svg
@@ -135,11 +135,13 @@ const emit = defineEmits<{
 }>()
 
 const inbox = useInboxStore()
+const { canEdit, assertCanEdit } = useCanEdit()
 const draft = ref('')
 const messagesEl = ref<HTMLElement | null>(null)
 const showDeleteConfirm = ref(false)
 
 function confirmDelete() {
+  if (!assertCanEdit()) return
   emit('delete')
 }
 
@@ -186,7 +188,9 @@ const messagesScroll = useScrollLoad(() => messagesEl.value, loadOlderMessages, 
   isScrollTrigger: isNearScrollTop,
 })
 
-function submit() {
+function onSendClick() {
+  if (!assertCanEdit()) return
+
   const text = draft.value.trim()
   if (!text || !props.canSend) return
 

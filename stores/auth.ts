@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { AuthUser } from '~/types/chat'
+import { UserRole, type AuthUser } from '~/types/chat'
 import { apiGetAuthMe, apiPostAuthLogin } from '~/api/auth'
 import { clearAuthToken, getAuthToken, saveAuthToken } from '~/composables/useApiBase'
 
@@ -13,6 +13,7 @@ export const useAuthStore = defineStore('auth', {
 
   getters: {
     isAuthenticated: (state) => Boolean(state.token && state.user),
+    isGuest: (state) => state.user?.role === UserRole.Guest || state.user?.username === 'guest',
   },
 
   actions: {

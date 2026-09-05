@@ -7,6 +7,7 @@ import {
   apiGetConversations,
 } from '~/api/conversations'
 import { useSocketUrl } from '~/composables/useApiBase'
+import { GUEST_EDIT_DENIED_MESSAGE } from '~/composables/useCanEdit'
 import { useAuthStore } from '~/stores/auth'
 import {
   normalizeConversationPage,
@@ -357,7 +358,12 @@ export const useInboxStore = defineStore('inbox', {
       )
 
       socket.on('support:error', (payload: { message?: string }) => {
-        this.error = payload.message ?? 'Socket error'
+        const message = payload.message ?? 'Socket error'
+        this.error = message
+
+        if (message === GUEST_EDIT_DENIED_MESSAGE) {
+          useToast().show(message)
+        }
       })
 
       socket.on('connect_error', () => {
@@ -370,6 +376,12 @@ export const useInboxStore = defineStore('inbox', {
     sendReply(text: string) {
       const trimmed = text.trim()
       if (!trimmed || !this.activeSessionId || !socket?.connected) return false
+
+      const auth = useAuthStore()
+      if (auth.isGuest) {
+        useToast().show(GUEST_EDIT_DENIED_MESSAGE)
+        return false
+      }
 
       socket.emit('support:agent:reply', {
         sessionId: this.activeSessionId,
