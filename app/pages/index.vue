@@ -61,12 +61,14 @@ definePageMeta({
 
 const auth = useAuthStore()
 const inbox = useInboxStore()
+const { assertCanEdit } = useCanEdit()
 
 async function selectConversation(sessionId: string) {
   await inbox.selectConversation(sessionId)
 }
 
 function sendReply(text: string) {
+  if (!assertCanEdit()) return
   inbox.sendReply(text)
 }
 
